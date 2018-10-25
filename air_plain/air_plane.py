@@ -11,15 +11,15 @@ class AirPlane():
     def __init__(self):
         self.WIDTH = 600
         self.HEIGHT = 800
-        self.helicopter_draw_time = 100
-        self.helicopter_elapse_time = 100
         self.rocket_velocity = 10
         self.helicopter_velocity = 1
         self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
         self.keys = [False, False]
-        self.air_plane_location_begin = [225, 650]
+        self.air_plane_location_begin = [self.WIDTH//3, self.HEIGHT-150]
         self.air_plane_location_during_game = [0, 0]
         self.rockets_positions = []
+        self.helicopter_draw_time = 100
+        self.helicopter_elapse_time = 200
         self.helicopter_draw_position = [[100, 20]]
         self.air_plane = pygame.image.load("files/airplane.png")
         self.sky = pygame.image.load("files/sky.gif")
@@ -47,12 +47,15 @@ class AirPlane():
             self.helicopter_draw_position.append([random.randint(self.WIDTH // 10, self.WIDTH-self.WIDTH//10), 0])
             self.helicopter_draw_time = self.helicopter_elapse_time
 
-    def start_the_game(self):
+    def welcome_message(self):
         print("Welcome!")
         print("z move to the left")
         print("c move to the right")
         print("q to quit the game")
         print("left click to shoot")
+        
+    def start_the_game(self):
+        self.welcome_message()
         pygame.init()
         while 1:
             self.create_background()
@@ -68,10 +71,10 @@ class AirPlane():
                 index_rocket = 0
                 for rocket_position in self.rockets_positions:
                     rocket_rectangle = pygame.Rect(self.rocket.get_rect())
-                    rocket_rectangle.top = rocket_position[1]
-                    rocket_rectangle.left = rocket_position[2]
+                    rocket_rectangle.left = rocket_position[1]
+                    rocket_rectangle.top = rocket_position[2]
                     if helicopter_rectangle.colliderect(rocket_rectangle):
-                        self.air_plane_location_begin[0] += 1
+                        self.air_plane_location_during_game[0] += 1
                         self.helicopter_draw_position.pop(index_helicopter)
                         self.rockets_positions.pop(index_rocket)
                 index_helicopter += 1
@@ -100,7 +103,8 @@ class AirPlane():
                     self.air_plane_location_during_game[1] += 1
                     self.rockets_positions.append([math.atan2(mouse_position[1]-(self.air_plane_location_begin[1]+70), 
                                     mouse_position[0]-(self.air_plane_location_begin[0])), 
-                                    self.air_plane_location_begin[0]+70, self.air_plane_location_begin[1]+70])
+                                    self.air_plane_location_begin[0]+70, 
+                                    self.air_plane_location_begin[1]+70])
             if self.keys[0]:
                 self.air_plane_location_begin[0] -= 2
             elif self.keys[1]:
