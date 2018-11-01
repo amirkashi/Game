@@ -5,18 +5,21 @@ import os
 import pygame.mixer
 import pygame.time
 import math
-
+import time
 
 class AirPlane():
     def __init__(self):
         self.WIDTH = 600
         self.HEIGHT = 800
+        self.START_TIME = time.time()
+        self.TIME_ELAPSE_INCREASE_SPEED = 10
+        self.MAX_ELAPSE = 10
+        self.time_elapse = 0
         self.rocket_velocity = 10
         self.helicopter_velocity = 1
         self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
         self.keys = [False, False]
         self.air_plane_location_begin = [self.WIDTH//3, self.HEIGHT-150]
-        self.air_plane_location_during_game = [0, 0]
         self.rockets_positions = []
         self.helicopter_draw_time = 100
         self.helicopter_elapse_time = 200
@@ -24,8 +27,7 @@ class AirPlane():
         self.air_plane = pygame.image.load("files/airplane.png")
         self.sky = pygame.image.load("files/sky.gif")
         self.rocket = pygame.image.load("files/bomb.png")
-        self.helicopter_1 = pygame.image.load("files/heli.png")
-        self.helicopter_2 = self.helicopter_1
+        self.helicopter = pygame.image.load("files/heli.png")
 
     def create_background(self):
         for x in range(self.WIDTH / self.sky.get_width() + 1):
@@ -63,11 +65,11 @@ class AirPlane():
         self.move_rockets()
         self.helicopter_release()
         
-    def find_helicopter_Ricjet_collide(self):
+    def find_helicopter_rocket_collide(self):
         index_helicopter = 0
         for helicopter_position in self.helicopter_draw_position:
             helicopter_position[1] += self.helicopter_velocity
-            helicopter_rectangle = pygame.Rect(self.helicopter_2.get_rect())
+            helicopter_rectangle = pygame.Rect(self.helicopter.get_rect())
             helicopter_rectangle.top = helicopter_position[1]
             helicopter_rectangle.left = helicopter_position[0]
             index_rocket = 0
@@ -76,7 +78,7 @@ class AirPlane():
                 rocket_rectangle.left = rocket_position[1]
                 rocket_rectangle.top = rocket_position[2]
                 if helicopter_rectangle.colliderect(rocket_rectangle):
-                    self.air_plane_location_during_game[0] += 1
+                    #self.air_plane_location_during_game[0] += 1
                     self.helicopter_draw_position.pop(index_helicopter)
                     self.rockets_positions.pop(index_rocket)
             index_helicopter += 1
@@ -84,7 +86,7 @@ class AirPlane():
     
     def draw_helicopter_in_screen(self):
         for helicopter_position in self.helicopter_draw_position:
-            self.screen.blit(self.helicopter_1, helicopter_position)
+            self.screen.blit(self.helicopter, helicopter_position)
     
     def get_kesy_from_player(self):        
         for event in pygame.event.get():
@@ -104,7 +106,7 @@ class AirPlane():
                     exit(0)
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_position = pygame.mouse.get_pos()
-                self.air_plane_location_during_game[1] += 1
+                #self.air_plane_location_during_game[1] += 1
                 self.rockets_positions.append([math.atan2(mouse_position[1]-(self.air_plane_location_begin[1]+70), 
                                 mouse_position[0]-(self.air_plane_location_begin[0])), 
                                 self.air_plane_location_begin[0]+70, 
@@ -117,17 +119,28 @@ class AirPlane():
             self.air_plane_location_begin[0] -= 2
         elif self.keys[1] and self.air_plane_location_begin[0] < self.WIDTH - right_border:
             self.air_plane_location_begin[0] += 2
-
+    
+    def time_progress(self, game_time):
+        return int(game_time - self.START_TIME)
+    
+    def increase_speed(self):
+        self.time_elapse += 1
+        self.rocket_velocity += 1
+        #self.helicopter_velocity += 1
+        print(self.rocket_velocity)
     
     def start_the_game(self):
         self.welcome_message()
         pygame.init()
         while 1:
             self.refresh_game()
-            self.find_helicopter_Ricjet_collide()
+            self.find_helicopter_rocket_collide()
             self.draw_helicopter_in_screen()
             self.helicopter_draw_time -= 1
             pygame.display.flip()
             self.get_kesy_from_player()
             self.move_airplane()
-            
+            game_time = time.time()
+            time_progress_secend = self.time_progress(game_time)
+            if self.time_elapse < self.MAX_ELAPSE and time_progress_secend % self.TIME_ELAPSE_INCREASE_SPEED == 0:
+                self.increase_speed()
